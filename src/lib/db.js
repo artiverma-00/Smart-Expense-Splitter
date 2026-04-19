@@ -16,9 +16,15 @@ async function connectDB() {
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI, {
-      bufferCommands: false,
-    });
+    cached.promise = mongoose
+      .connect(MONGODB_URI, {
+        bufferCommands: false,
+      })
+      .catch((error) => {
+        // Allow retry on next request if initial connect failed.
+        cached.promise = null;
+        throw error;
+      });
   }
 
   cached.conn = await cached.promise;
