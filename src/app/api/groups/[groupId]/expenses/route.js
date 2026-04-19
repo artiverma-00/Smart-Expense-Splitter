@@ -20,7 +20,9 @@ export async function GET(request, context) {
 
     await connectDB();
 
-    const group = await Group.findById(params.groupId).select("members createdBy");
+    const group = await Group.findById(params.groupId).select(
+      "members createdBy",
+    );
     if (!group)
       return NextResponse.json({ error: "Group not found" }, { status: 404 });
 

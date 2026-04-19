@@ -409,40 +409,40 @@ export default function GroupDetailPage() {
                     const paidById = paidBy._id || paidBy;
                     const category = exp.category || "other";
                     return (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                        <Receipt className="h-5 w-5 text-primary" />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                            <Receipt className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium">{exp.title}</p>
+                            <p className="text-sm text-muted-foreground">
+                              Paid by {paidByName} ·{" "}
+                              {new Date(exp.date).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <p className="text-lg font-bold">₹{exp.amount}</p>
+                            <Badge
+                              className={`text-xs capitalize ${CATEGORY_COLORS[category] || CATEGORY_COLORS.other}`}
+                            >
+                              {category}
+                            </Badge>
+                          </div>
+                          {paidById === currentUserId && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-red-400 hover:bg-red-50 hover:text-red-600"
+                              onClick={() => handleDeleteExpense(exp._id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{exp.title}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Paid by {paidByName} ·{" "}
-                          {new Date(exp.date).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <p className="text-lg font-bold">₹{exp.amount}</p>
-                        <Badge
-                          className={`text-xs capitalize ${CATEGORY_COLORS[category] || CATEGORY_COLORS.other}`}
-                        >
-                          {category}
-                        </Badge>
-                      </div>
-                      {paidById === currentUserId && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-red-400 hover:bg-red-50 hover:text-red-600"
-                          onClick={() => handleDeleteExpense(exp._id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
                     );
                   })()}
                 </CardContent>
