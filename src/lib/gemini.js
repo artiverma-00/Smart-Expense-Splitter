@@ -50,6 +50,14 @@ function extractJsonArray(text) {
   }
 }
 
+function getResponseText(result) {
+  try {
+    return result?.response?.text?.() || "";
+  } catch {
+    return "";
+  }
+}
+
 function buildFallbackInsights(spendingData) {
   const categoryBreakdown = spendingData?.categoryBreakdown || {};
   const categoryEntries = Object.entries(categoryBreakdown)
@@ -103,7 +111,14 @@ function buildFallbackInsights(spendingData) {
 
 export async function categorizeExpense(title, description = "") {
   const model = getGeminiModel();
-  if (!model) return { category: "other", source: "fallback" };
+  if (!model) {
+    return {
+      category: "other",
+      source: "fallback",
+      message:
+        "Gemini is not configured, so this expense was categorized locally.",
+    };
+  }
 
   const prompt = `
     Categorize this expense into exactly one of these categories:
@@ -117,14 +132,30 @@ export async function categorizeExpense(title, description = "") {
 
   try {
     const result = await model.generateContent(prompt);
-    const text = result.response.text().trim().toLowerCase();
+    const text = getResponseText(result).trim().toLowerCase();
+    if (!text) {
+      return {
+        category: "other",
+        source: "fallback",
+        message:
+          "Gemini returned an empty response, so this expense was categorized locally.",
+      };
+    }
     return {
       category: VALID_CATEGORIES.includes(text) ? text : "other",
       source: "ai",
+      message: `Gemini categorized this expense as ${
+        VALID_CATEGORIES.includes(text) ? text : "other"
+      }.`,
     };
   } catch (error) {
     console.error("Gemini categorize error:", error);
-    return { category: "other", source: "fallback" };
+    return {
+      category: "other",
+      source: "fallback",
+      message:
+        "Gemini failed to respond, so this expense was categorized locally.",
+    };
   }
 }
 
@@ -153,21 +184,29 @@ export async function generateInsights(spendingData) {
 
   try {
     const result = await model.generateContent(prompt);
-    const parsed = extractJsonArray(result.response.text());
+    const parsed = extractJsonArray(getResponseText(result));
     const insights =
       Array.isArray(parsed) && parsed.length > 0
         ? parsed
         : buildFallbackInsights(spendingData);
+    const source =
+      Array.isArray(parsed) && parsed.length > 0 ? "ai" : "fallback";
 
     return {
       insights,
-      source: Array.isArray(parsed) && parsed.length > 0 ? "ai" : "fallback",
+      source,
+      message:
+        source === "ai"
+          ? "Gemini generated these insights successfully."
+          : "Gemini is not configured or returned an invalid response, so these insights are generated locally from your spending data.",
     };
   } catch (error) {
     console.error("Gemini insights error:", error);
     return {
       insights: buildFallbackInsights(spendingData),
       source: "fallback",
+      message:
+        "Gemini is not configured or returned an invalid response, so these insights are generated locally from your spending data.",
     };
   }
 }

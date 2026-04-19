@@ -32,6 +32,7 @@ export async function GET(request) {
     return NextResponse.json({
       insights: result.insights,
       source: result.source,
+      message: result.message,
       categoryBreakdown,
       trend,
     });

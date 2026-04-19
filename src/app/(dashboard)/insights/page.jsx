@@ -38,6 +38,7 @@ export default function InsightsPage() {
   const [categoryData, setCategoryData] = useState([]);
   const [trend, setTrend] = useState(null);
   const [source, setSource] = useState("ai");
+  const [sourceMessage, setSourceMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const activeGroupId = useMemo(
@@ -53,6 +54,7 @@ export default function InsightsPage() {
         const res = await axios.get(`/api/ai/insights?groupId=${groupId}`);
         setInsights(res.data.insights || []);
         setSource(res.data.source || "ai");
+        setSourceMessage(res.data.message || "");
         setTrend(res.data.trend);
         const cats = Object.entries(res.data.categoryBreakdown || {}).map(
           ([name, data]) => ({
@@ -97,6 +99,8 @@ export default function InsightsPage() {
     warning: "border-l-yellow-400 bg-yellow-50",
     success: "border-l-green-400 bg-green-50",
   };
+  const fallbackMessage =
+    "Gemini is not configured or returned an invalid response, so these insights are generated locally from your spending data.";
 
   return (
     <div className="space-y-6">
@@ -152,12 +156,15 @@ export default function InsightsPage() {
       ) : (
         <>
           {source !== "ai" && (
-            <Card className="border-l-4 border-l-amber-400 bg-amber-50/80">
+            <Card
+              className="border-l-4 border-l-amber-400 bg-amber-50/80"
+              role="status"
+              aria-live="polite"
+            >
               <CardContent className="pt-4">
                 <p className="font-semibold text-amber-900">AI fallback mode</p>
                 <p className="mt-1 text-sm text-amber-800">
-                  Gemini is not configured or returned an invalid response, so
-                  these insights are generated locally from your spending data.
+                  {sourceMessage || fallbackMessage}
                 </p>
               </CardContent>
             </Card>
