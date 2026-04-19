@@ -403,6 +403,12 @@ export default function GroupDetailPage() {
             expenses.map((exp) => (
               <Card key={exp._id} className="transition-shadow hover:shadow-sm">
                 <CardContent className="pt-4">
+                  {(() => {
+                    const paidBy = exp.paidBy || {};
+                    const paidByName = paidBy.name || paidBy.email || "Unknown";
+                    const paidById = paidBy._id || paidBy;
+                    const category = exp.category || "other";
+                    return (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
@@ -411,7 +417,7 @@ export default function GroupDetailPage() {
                       <div>
                         <p className="font-medium">{exp.title}</p>
                         <p className="text-sm text-muted-foreground">
-                          Paid by {exp.paidBy.name} ·{" "}
+                          Paid by {paidByName} ·{" "}
                           {new Date(exp.date).toLocaleDateString()}
                         </p>
                       </div>
@@ -420,12 +426,12 @@ export default function GroupDetailPage() {
                       <div className="text-right">
                         <p className="text-lg font-bold">₹{exp.amount}</p>
                         <Badge
-                          className={`text-xs capitalize ${CATEGORY_COLORS[exp.category]}`}
+                          className={`text-xs capitalize ${CATEGORY_COLORS[category] || CATEGORY_COLORS.other}`}
                         >
-                          {exp.category}
+                          {category}
                         </Badge>
                       </div>
-                      {exp.paidBy._id === currentUserId && (
+                      {paidById === currentUserId && (
                         <Button
                           variant="ghost"
                           size="icon"
@@ -437,6 +443,8 @@ export default function GroupDetailPage() {
                       )}
                     </div>
                   </div>
+                    );
+                  })()}
                 </CardContent>
               </Card>
             ))

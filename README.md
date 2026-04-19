@@ -144,3 +144,14 @@ Usually MongoDB access issue:
 - `src/hooks` - shared hooks for auth/groups/expenses
 - `src/models` - Mongoose models
 - `src/lib` - database, auth, AI, utility helpers
+
+## Deployment
+
+Deploy on Vercel or any Node.js hosting that supports Next.js App Router.
+
+Set the same environment variables in the deployment platform:
+
+- `MONGODB_URI`
+- `JWT_SECRET`
+- `GEMINI_API_KEY` (optional)
+

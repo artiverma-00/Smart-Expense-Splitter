@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 import connectDB from "@/lib/db";
 import Expense from "@/models/Expense";
 import Group from "@/models/Group";
@@ -13,15 +14,42 @@ export async function GET(request, context) {
     if (!decoded)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    if (!mongoose.Types.ObjectId.isValid(params.groupId)) {
+      return NextResponse.json({ error: "Invalid group id" }, { status: 400 });
+    }
+
     await connectDB();
 
-    const expenses = await Expense.find({ group: params.groupId })
-      .populate("paidBy", "name email avatar")
-      .populate("splits.user", "name email avatar")
-      .sort({ date: -1 });
+    const group = await Group.findById(params.groupId).select("members createdBy");
+    if (!group)
+      return NextResponse.json({ error: "Group not found" }, { status: 404 });
 
-    return NextResponse.json({ expenses });
+    const isMember = group.members.some(
+      (member) => member.user.toString() === decoded.userId,
+    );
+
+    if (!isMember) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    try {
+      const expenses = await Expense.find({ group: params.groupId })
+        .populate("paidBy", "name email avatar")
+        .populate("splits.user", "name email avatar")
+        .sort({ date: -1 });
+
+      return NextResponse.json({ expenses });
+    } catch (populateError) {
+      console.error("Expenses populate failed:", populateError);
+
+      const fallbackExpenses = await Expense.find({ group: params.groupId })
+        .sort({ date: -1 })
+        .lean();
+
+      return NextResponse.json({ expenses: fallbackExpenses });
+    }
   } catch (error) {
+    console.error("Expenses GET error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
